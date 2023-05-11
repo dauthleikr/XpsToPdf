@@ -29,13 +29,23 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using PdfSharp.Drawing;
 using PdfSharp.Fonts.OpenType;
 
 namespace PdfSharp.Fonts
 {
 #if true
-  /// <summary>
+
+    public static class FontDeallocator
+    {
+        public static void ForceDeallocateCached()
+        {
+            FontDescriptorStock.Global.DeallocateAll();
+        }
+    }
+    
+    /// <summary>
   /// Global table of TrueType fontdescriptor objects.
   /// </summary>
   class FontDescriptorStock
@@ -56,6 +66,11 @@ namespace PdfSharp.Fonts
 
       FontDescriptor descriptor = table[selector] as FontDescriptor;
       return descriptor;
+    }
+
+    public void DeallocateAll()
+    {
+        table.Clear();
     }
 
     ///// <summary>
@@ -227,7 +242,7 @@ namespace PdfSharp.Fonts
     /// Used to map XFont to PdfFont.
     /// There is a one to one relationship between a FontSelector and a TrueType/OpenType file.
     /// </summary>
-    internal class FontSelector
+    internal class FontSelector : IEquatable<FontSelector>
     {
       public FontSelector(XFont font)
       {
@@ -253,31 +268,53 @@ namespace PdfSharp.Fonts
       public XFontStyle Style => style;
       XFontStyle style;
 
-      public static bool operator ==(FontSelector selector1, FontSelector selector2)
+
+      private sealed class NameStyleEqualityComparer : IEqualityComparer<FontSelector>
       {
-        if (!Equals(selector1, null))
-          selector1.Equals(selector2);
-        return Equals(selector2, null);
+          public bool Equals(FontSelector x, FontSelector y)
+          {
+              if (ReferenceEquals(x, y)) return true;
+              if (ReferenceEquals(x, null)) return false;
+              if (ReferenceEquals(y, null)) return false;
+              if (x.GetType() != y.GetType()) return false;
+              return x.name == y.name && x.style == y.style;
+          }
+
+          public int GetHashCode(FontSelector obj)
+          {
+              unchecked
+              {
+                  return ((obj.name != null ? obj.name.GetHashCode() : 0) * 397) ^ (int)obj.style;
+              }
+          }
       }
 
-      public static bool operator !=(FontSelector selector1, FontSelector selector2)
+      public static IEqualityComparer<FontSelector> NameStyleComparer { get; } = new NameStyleEqualityComparer();
+
+      public static bool operator ==(FontSelector left, FontSelector right)
       {
-        return !(selector1 == selector2);
+          return Equals(left, right);
+      }
+
+      public static bool operator !=(FontSelector left, FontSelector right)
+      {
+          return !Equals(left, right);
       }
 
       public override bool Equals(object obj)
       {
-        if (obj == null)  // removing this can lead to stack overflow
-          return false;
-        FontSelector selector = obj as FontSelector;
-        if (!Equals(selector, null))
-          return name == selector.name && style == selector.style;
-        return false;
+          if (ReferenceEquals(null, obj)) return false;
+          if (ReferenceEquals(this, obj)) return true;
+          if (obj.GetType() != this.GetType()) return false;
+          return Equals((FontSelector)obj);
       }
 
       public override int GetHashCode()
       {
-        return name.GetHashCode() ^ style.GetHashCode();
+          unchecked
+          {
+              return ((name != null ? name.GetHashCode() : 0) * 397) ^ (int)style;
+          }
       }
 
       /// <summary>
@@ -305,6 +342,13 @@ namespace PdfSharp.Fonts
             break;
         }
         return name + variation;
+      }
+
+      public bool Equals(FontSelector other)
+      {
+          if (ReferenceEquals(null, other)) return false;
+          if (ReferenceEquals(this, other)) return true;
+          return name == other.name && style == other.style;
       }
     }
   }

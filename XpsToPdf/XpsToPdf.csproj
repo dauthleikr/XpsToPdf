@@ -1,16 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net48;net5.0-windows</TargetFrameworks>
+    <TargetFrameworks>net47</TargetFrameworks>
     <UseWindowsForms>true</UseWindowsForms>
     <UseWpf>true</UseWpf>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
-    <Authors>Thomas Hoevel, Nathan Jones, XpsToPdf</Authors>
+    <Authors>Thomas Hoevel, Nathan Jones, XpsToPdf, dauthleikr</Authors>
     <Company>Thomas Hoevel, Nathan Jones, XpsToPdf Community</Company>
     <Description>A single package to convert XPS to PDF.
-Since you can convert WPF object to XPS easily, here the last piece to free easy reporting.
-</Description>
+I forked https://github.com/XpsToPdf/XpsToPdf and deleted some stuff to make it work under .net 4.7 :D 
+Also fixed a memory leak.</Description>
     <PackageProjectUrl>https://github.com/XpsToPdf/XpsToPdf</PackageProjectUrl>
     <PackageLicenseExpression></PackageLicenseExpression>
     <Copyright>2005-2018 empira Software GmbH, 2016 Nathan Jones, 2020 XpsToPdf Community</Copyright>
@@ -21,7 +21,8 @@ Since you can convert WPF object to XPS easily, here the last piece to free easy
     <PackageReleaseNotes>First version based on the work of Nathan Jones.
 See: https://nathanpjones.com/2013/03/output-to-pdf-in-wpf-for-free/</PackageReleaseNotes>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <Version>1.0.2</Version>
+    <Version>1.1.0</Version>
+    <PackageId>$(AssemblyName)-47</PackageId>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -29,7 +30,7 @@ See: https://nathanpjones.com/2013/03/output-to-pdf-in-wpf-for-free/</PackageRel
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants>WPF</DefineConstants>
+    <DefineConstants>WPF;NET48_OR_GREATER</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -64,7 +65,7 @@ See: https://nathanpjones.com/2013/03/output-to-pdf-in-wpf-for-free/</PackageRel
     <PackageReference Include="System.IO.Packaging" Version="4.7.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'net47'">
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="ReachFramework" />
